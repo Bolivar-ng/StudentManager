@@ -112,4 +112,65 @@ public class Database {
             System.out.println("Error reading students: " + e.getMessage());
         }
     }
+    public static void deleteStudent(String matricule) {
+
+        String sql = "DELETE FROM students WHERE matricule = ?";
+
+        Connection conn = connect();
+
+        if (conn == null) {
+            System.out.println("Database connection failed.");
+            return;
+        }
+
+        try {
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, matricule);
+
+            int rows = pstmt.executeUpdate();
+
+            if (rows > 0) {
+                System.out.println("Student deleted successfully!");
+            } else {
+                System.out.println("No student found with this matricule.");
+            }
+
+            pstmt.close();
+            conn.close();
+
+        } catch (SQLException e) {
+            System.out.println("Error deleting student: " + e.getMessage());
+        }
+    }
+    public static void updateStudentProgram(String matricule, String newProgram) {
+
+        String sql = "UPDATE students SET program = ? WHERE matricule = ?";
+
+        Connection conn = connect();
+
+        if (conn == null) {
+            System.out.println("Database connection failed.");
+            return;
+        }
+
+        try {
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, newProgram);
+            pstmt.setString(2, matricule);
+
+            int rows = pstmt.executeUpdate();
+
+            if (rows > 0) {
+                System.out.println("Student updated successfully!");
+            } else {
+                System.out.println("No student found with this matricule.");
+            }
+
+            pstmt.close();
+            conn.close();
+
+        } catch (SQLException e) {
+            System.out.println("Error updating student: " + e.getMessage());
+        }
+    }
 }
