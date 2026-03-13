@@ -1,16 +1,17 @@
 package app;
 
 import java.util.Scanner;
+import service.StudentService;
 import database.Database;
 
 public class Main {
 
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        int choice;
 
-        System.out.println("Program started");
+        Scanner sc = new Scanner(System.in);
+        StudentService studentService = new StudentService();
         Database.initializeDatabase();
+        int choice;
 
         do {
             System.out.println();
@@ -23,7 +24,7 @@ public class Main {
             System.out.print("Choose an option: ");
 
             choice = sc.nextInt();
-            sc.nextLine(); // clear buffer
+            sc.nextLine();
 
             switch (choice) {
                 case 1:
@@ -36,11 +37,11 @@ public class Main {
                     System.out.print("Enter program: ");
                     String program = sc.nextLine();
 
-                    Database.addStudent(matricule, name, program);
+                    studentService.addStudent(matricule, name, program);
                     break;
 
                 case 2:
-                    Database.listStudents();
+                    studentService.listStudents();
                     break;
 
                 case 3:
@@ -50,14 +51,14 @@ public class Main {
                     System.out.print("Enter new program: ");
                     String newProgram = sc.nextLine();
 
-                    Database.updateStudentProgram(updateMatricule, newProgram);
+                    studentService.updateStudentProgram(updateMatricule, newProgram);
                     break;
 
                 case 4:
                     System.out.print("Enter matricule of the student to delete: ");
                     String deleteMatricule = sc.nextLine();
 
-                    Database.deleteStudent(deleteMatricule);
+                    studentService.deleteStudent(deleteMatricule);
                     break;
 
                 case 0:
