@@ -42,6 +42,6 @@ public class Student {
 
     @Override
     public String toString() {
-        return id + " | " + matricule + " | " + name + " | " + program;
+    	return String.format("[%s] %s — %s", matricule, name, program);
     }
 }

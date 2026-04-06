@@ -5,6 +5,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import model.Student;
+import model.Grade;
 
 public class Database {
 
@@ -14,7 +17,7 @@ public class Database {
         try {
             return DriverManager.getConnection(URL);
         } catch (SQLException e) {
-            System.out.println("Connection error: " + e.getMessage());
+            System.err.println("Connection error: " + e.getMessage()); // System.err statt out
             return null;
         }
     }
@@ -37,96 +40,68 @@ public class Database {
                 "FOREIGN KEY(student_id) REFERENCES students(id)" +
                 ");";
 
-        Connection conn = connect();
+        // try-with-resources: conn und stmt werden automatisch geschlossen
+        try (Connection conn = connect();
+             Statement stmt = conn.createStatement()) {
 
-        if (conn == null) {
-            System.out.println("Database connection failed.");
-            return;
-        }
-
-        try {
-            Statement stmt = conn.createStatement();
             stmt.execute(createStudentsTable);
             stmt.execute(createGradesTable);
-            System.out.println("Tables created successfully!");
-            stmt.close();
-            conn.close();
+            System.out.println("Database initialized successfully.");
+
         } catch (SQLException e) {
-            System.out.println("Database initialization error: " + e.getMessage());
+            System.err.println("Database initialization error: " + e.getMessage());
         }
     }
 
     public static void addStudent(String matricule, String name, String program) {
         String sql = "INSERT INTO students(matricule, name, program) VALUES(?, ?, ?)";
 
-        Connection conn = connect();
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        if (conn == null) {
-            System.out.println("Cannot add student: database connection failed.");
-            return;
-        }
-
-        try {
-            PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, matricule);
             pstmt.setString(2, name);
             pstmt.setString(3, program);
-
             pstmt.executeUpdate();
             System.out.println("Student added successfully!");
 
-            pstmt.close();
-            conn.close();
         } catch (SQLException e) {
-            System.out.println("Error inserting student: " + e.getMessage());
+            System.err.println("Error inserting student: " + e.getMessage());
         }
     }
 
     public static void listStudents() {
         String sql = "SELECT * FROM students";
 
-        Connection conn = connect();
+        try (Connection conn = connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
-        if (conn == null) {
-            System.out.println("Database connection failed.");
-            return;
-        }
-
-        try {
-            Statement stmt = conn.createStatement();
-            java.sql.ResultSet rs = stmt.executeQuery(sql);
-
+            boolean found = false;
             while (rs.next()) {
-                System.out.println(
-                    rs.getInt("id") + " | " +
-                    rs.getString("matricule") + " | " +
-                    rs.getString("name") + " | " +
+                found = true;
+                Student student = new Student(
+                    rs.getInt("id"),
+                    rs.getString("matricule"),
+                    rs.getString("name"),
                     rs.getString("program")
                 );
+                System.out.println(student); // utilise toString()
             }
+            if (!found) System.out.println("No students found.");
 
-            rs.close();
-            stmt.close();
-            conn.close();
         } catch (SQLException e) {
-            System.out.println("Error reading students: " + e.getMessage());
+            System.err.println("Error reading students: " + e.getMessage());
         }
     }
-    public static void deleteStudent(String matricule) {
 
+    public static void deleteStudent(String matricule) {
         String sql = "DELETE FROM students WHERE matricule = ?";
 
-        Connection conn = connect();
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        if (conn == null) {
-            System.out.println("Database connection failed.");
-            return;
-        }
-
-        try {
-            PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, matricule);
-
             int rows = pstmt.executeUpdate();
 
             if (rows > 0) {
@@ -135,29 +110,19 @@ public class Database {
                 System.out.println("No student found with this matricule.");
             }
 
-            pstmt.close();
-            conn.close();
-
         } catch (SQLException e) {
-            System.out.println("Error deleting student: " + e.getMessage());
+            System.err.println("Error deleting student: " + e.getMessage());
         }
     }
-    public static void updateStudentProgram(String matricule, String newProgram) {
 
+    public static void updateStudentProgram(String matricule, String newProgram) {
         String sql = "UPDATE students SET program = ? WHERE matricule = ?";
 
-        Connection conn = connect();
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        if (conn == null) {
-            System.out.println("Database connection failed.");
-            return;
-        }
-
-        try {
-            PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, newProgram);
             pstmt.setString(2, matricule);
-
             int rows = pstmt.executeUpdate();
 
             if (rows > 0) {
@@ -166,137 +131,98 @@ public class Database {
                 System.out.println("No student found with this matricule.");
             }
 
-            pstmt.close();
-            conn.close();
-
         } catch (SQLException e) {
-            System.out.println("Error updating student: " + e.getMessage());
+            System.err.println("Error updating student: " + e.getMessage());
         }
     }
-    public static void addGrade(String matricule, String module, double grade) {
 
+    public static void addGrade(String matricule, String module, double grade) {
         String findStudentSql = "SELECT id FROM students WHERE matricule = ?";
         String insertGradeSql = "INSERT INTO grades(student_id, module, grade) VALUES(?, ?, ?)";
 
-        Connection conn = connect();
+        // Zwei verschachtelte try-with-resources weil zwei separate Queries
+        try (Connection conn = connect();
+             PreparedStatement findStmt = conn.prepareStatement(findStudentSql)) {
 
-        if (conn == null) {
-            System.out.println("Database connection failed.");
-            return;
-        }
-
-        try {
-            PreparedStatement findStmt = conn.prepareStatement(findStudentSql);
             findStmt.setString(1, matricule);
-            java.sql.ResultSet rs = findStmt.executeQuery();
 
-            if (!rs.next()) {
-                System.out.println("No student found with this matricule.");
-                rs.close();
-                findStmt.close();
-                conn.close();
-                return;
+            try (ResultSet rs = findStmt.executeQuery()) {
+                if (!rs.next()) {
+                    System.out.println("No student found with this matricule.");
+                    return;
+                }
+
+                int studentId = rs.getInt("id");
+
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertGradeSql)) {
+                    insertStmt.setInt(1, studentId);
+                    insertStmt.setString(2, module);
+                    insertStmt.setDouble(3, grade);
+                    insertStmt.executeUpdate();
+                    System.out.println("Grade added successfully!");
+                }
             }
 
-            int studentId = rs.getInt("id");
-            rs.close();
-            findStmt.close();
-
-            PreparedStatement insertStmt = conn.prepareStatement(insertGradeSql);
-            insertStmt.setInt(1, studentId);
-            insertStmt.setString(2, module);
-            insertStmt.setDouble(3, grade);
-
-            insertStmt.executeUpdate();
-            System.out.println("Grade added successfully!");
-
-            insertStmt.close();
-            conn.close();
-
         } catch (SQLException e) {
-            System.out.println("Error adding grade: " + e.getMessage());
+            System.err.println("Error adding grade: " + e.getMessage());
         }
     }
-    public static void listGrades(String matricule) {
 
+    public static void listGrades(String matricule) {
         String sql =
-                "SELECT students.matricule, students.name, grades.module, grades.grade " +
+            "SELECT students.name, grades.id, grades.student_id, grades.module, grades.grade " +
+            "FROM students " +
+            "JOIN grades ON students.id = grades.student_id " +
+            "WHERE students.matricule = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, matricule);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                boolean found = false;
+                while (rs.next()) {
+                    found = true;
+                    Grade grade = new Grade(
+                        rs.getInt("id"),
+                        rs.getInt("student_id"),
+                        rs.getString("module"),
+                        rs.getDouble("grade")
+                    );
+                    System.out.println(rs.getString("name") + " | " + grade);
+                }
+                if (!found) System.out.println("No grades found for this student.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error reading grades: " + e.getMessage());
+        }
+    }
+
+    public static void calculateAverage(String matricule) {
+        String sql =
+                "SELECT AVG(grades.grade) AS average_grade " +
                 "FROM students " +
                 "JOIN grades ON students.id = grades.student_id " +
                 "WHERE students.matricule = ?";
 
-        Connection conn = connect();
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        if (conn == null) {
-            System.out.println("Database connection failed.");
-            return;
-        }
-
-        try {
-            PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, matricule);
 
-            java.sql.ResultSet rs = pstmt.executeQuery();
-
-            boolean found = false;
-
-            while (rs.next()) {
-                found = true;
-                System.out.println(
-                    rs.getString("matricule") + " | " +
-                    rs.getString("name") + " | " +
-                    rs.getString("module") + " | " +
-                    rs.getDouble("grade")
-                );
-            }
-
-            if (!found) {
-                System.out.println("No grades found for this student.");
-            }
-
-            rs.close();
-            pstmt.close();
-            conn.close();
-
-        } catch (SQLException e) {
-            System.out.println("Error reading grades: " + e.getMessage());
-        }
-        }
-        public static void calculateAverage(String matricule) {
-
-            String sql =
-                    "SELECT AVG(grades.grade) AS average_grade " +
-                    "FROM students " +
-                    "JOIN grades ON students.id = grades.student_id " +
-                    "WHERE students.matricule = ?";
-
-            Connection conn = connect();
-
-            if (conn == null) {
-                System.out.println("Database connection failed.");
-                return;
-            }
-
-            try {
-                PreparedStatement pstmt = conn.prepareStatement(sql);
-                pstmt.setString(1, matricule);
-
-                java.sql.ResultSet rs = pstmt.executeQuery();
-
+            try (ResultSet rs = pstmt.executeQuery()) {
                 double average = rs.getDouble("average_grade");
-
                 if (rs.wasNull()) {
                     System.out.println("No grades found for this student.");
                 } else {
-                    System.out.println("Average grade: " + average);
+                    System.out.printf("Average grade: %.2f%n", average); // formatierte Ausgabe
                 }
-
-                rs.close();
-                pstmt.close();
-                conn.close();
-
-            } catch (SQLException e) {
-                System.out.println("Error calculating average: " + e.getMessage());
             }
+
+        } catch (SQLException e) {
+            System.err.println("Error calculating average: " + e.getMessage());
+        }
     }
 }
