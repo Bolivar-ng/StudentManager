@@ -1,79 +1,83 @@
 # StudentManager
 
-StudentManager is a Java console application for managing students using a SQLite database.
+A Java console application for managing students and grades using a SQLite database.
 
-This project is part of my learning journey in Applied Computer Science and demonstrates basic database operations using Java and SQL.
+Built as a portfolio project during my Applied Computer Science studies at HTW Berlin.
 
-## Features
-
-- Create students
-- List students
-- Update student information
-- Delete students
-- Automatic database initialization
-
-## Technologies Used
-
-- Java
-- SQLite
-- JDBC
-- Git & GitHub
-
-## Project Structure
-# StudentManager
-
-StudentManager is a Java console application for managing students using a SQLite database.
-
-This project is part of my learning journey in Applied Computer Science and demonstrates basic database operations using Java and SQL.
+---
 
 ## Features
 
-- Create students
-- List students
-- Update student information
-- Delete students
-- Automatic database initialization
+- Add, list, update and delete students
+- Add and list grades per student
+- Calculate average grade per student
+- Input validation (empty fields, grade range 0–20)
+- Crash-safe input handling (invalid types are caught and re-prompted)
+- Automatic database initialization on startup
 
-## Technologies Used
+---
 
-- Java
-- SQLite
-- JDBC
-- Git & GitHub
+## Tech Stack
 
-## Project Structure
+| Technology | Usage |
+|------------|-------|
+| Java | Core application logic |
+| SQLite | Local database |
+| JDBC | Database connection |
+| Git & GitHub | Version control |
+
+---
+
+## Project Structure  
 src/
-├── app
-│ └── Main.java
-├── database
-│ └── Database.java
-├── model
-│ ├── Student.java
-│ └── Grade.java
-└── service
-└── StudentService.java
+├── app/
+│   └── Main.java          # Entry point, console menu, input handling
+├── database/
+│   └── Database.java      # All SQL operations (CRUD)
+├── model/
+│   ├── Student.java       # Student data model
+│   └── Grade.java         # Grade data model
+└── service/
+└── StudentService.java # Business logic and input validation
+---
 
-## Database
+## Architecture 
+Main → StudentService → Database → SQLite 
+The project follows a layered architecture:
+- **app** — user interface and input handling
+- **service** — validation and business logic
+- **database** — SQL queries and connection management
+- **model** — data objects (Student, Grade)
 
-The application automatically creates the following tables:
--"students"
--"grades"
-The database file is created locally as: studentmanager.db
+---
 
-## Current Status
+## Getting Started
 
-✔ CRUD operations implemented  
-✔ SQLite database connection  
-✔ Basic console output  
+### Prerequisites
+- Java 11 or higher
+- No external dependencies — SQLite driver included via JDBC
 
-Future improvements will include:
+### Run the project
+```bash
+git clone https://github.com/Bolivar-ng/StudentManager.git
+cd StudentManager
+# Compile and run via your IDE (Eclipse, IntelliJ) or command line
+```
 
-- Interactive console menu
-- Better service layer
-- Input validation
-- Grade management system
+The database file `studentmanager.db` is created automatically on first run.
+
+---
+
+## Planned Features
+
+- Predefined programs and modules (selectable from a list)
+- Export grades to CSV
+- JUnit tests for service layer
+
+---
 
 ## Author
 
-Bolivar Nouaze Nguegoh  
-Applied Computer Science Student
+**Bolivar Nouaze Nguegoh**  
+Applied Computer Science Student — HTW Berlin  
+[GitHub](https://github.com/Bolivar-ng)
