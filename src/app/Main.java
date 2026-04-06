@@ -26,21 +26,20 @@ public class Main {
             System.out.println("6 - List grades");
             System.out.println("7 - Calculate average");
             System.out.println("0 - Exit");
-            System.out.print("Choose an option: ");
 
-            choice = sc.nextInt();
-            sc.nextLine();
+            // readInt statt sc.nextInt() — kein Crash mehr
+            choice = readInt(sc, "Choose an option: ");
 
             switch (choice) {
                 case 1:
                     System.out.print("Enter matricule: ");
-                    String matricule = sc.nextLine();
+                    String matricule = sc.nextLine().trim();
 
                     System.out.print("Enter name: ");
-                    String name = sc.nextLine();
+                    String name = sc.nextLine().trim();
 
                     System.out.print("Enter program: ");
-                    String program = sc.nextLine();
+                    String program = sc.nextLine().trim();
 
                     studentService.addStudent(matricule, name, program);
                     break;
@@ -51,45 +50,44 @@ public class Main {
 
                 case 3:
                     System.out.print("Enter matricule of the student to update: ");
-                    String updateMatricule = sc.nextLine();
+                    String updateMatricule = sc.nextLine().trim();
 
                     System.out.print("Enter new program: ");
-                    String newProgram = sc.nextLine();
+                    String newProgram = sc.nextLine().trim();
 
                     studentService.updateStudentProgram(updateMatricule, newProgram);
                     break;
 
                 case 4:
                     System.out.print("Enter matricule of the student to delete: ");
-                    String deleteMatricule = sc.nextLine();
+                    String deleteMatricule = sc.nextLine().trim();
 
                     studentService.deleteStudent(deleteMatricule);
                     break;
 
                 case 5:
                     System.out.print("Enter matricule: ");
-                    String gradeMatricule = sc.nextLine();
+                    String gradeMatricule = sc.nextLine().trim();
 
                     System.out.print("Enter module: ");
-                    String module = sc.nextLine();
+                    String module = sc.nextLine().trim();
 
-                    System.out.print("Enter grade: ");
-                    double grade = sc.nextDouble();
-                    sc.nextLine();
+                    // readDouble statt sc.nextDouble() — kein Crash mehr
+                    double grade = readDouble(sc, "Enter grade (0–20): ");
 
                     studentService.addGrade(gradeMatricule, module, grade);
                     break;
 
                 case 6:
                     System.out.print("Enter matricule: ");
-                    String listGradesMatricule = sc.nextLine();
+                    String listGradesMatricule = sc.nextLine().trim();
 
                     studentService.listGrades(listGradesMatricule);
                     break;
 
                 case 7:
                     System.out.print("Enter matricule: ");
-                    String averageMatricule = sc.nextLine();
+                    String averageMatricule = sc.nextLine().trim();
 
                     studentService.calculateAverage(averageMatricule);
                     break;
@@ -105,5 +103,31 @@ public class Main {
         } while (choice != 0);
 
         sc.close();
+    }
+
+    // --- Helper methods ---
+
+    private static int readInt(Scanner sc, String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = sc.nextLine().trim();
+            try {
+                return Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a number.");
+            }
+        }
+    }
+
+    private static double readDouble(Scanner sc, String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = sc.nextLine().trim();
+            try {
+                return Double.parseDouble(input);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+            }
+        }
     }
 }
