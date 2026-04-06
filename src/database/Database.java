@@ -173,4 +173,130 @@ public class Database {
             System.out.println("Error updating student: " + e.getMessage());
         }
     }
+    public static void addGrade(String matricule, String module, double grade) {
+
+        String findStudentSql = "SELECT id FROM students WHERE matricule = ?";
+        String insertGradeSql = "INSERT INTO grades(student_id, module, grade) VALUES(?, ?, ?)";
+
+        Connection conn = connect();
+
+        if (conn == null) {
+            System.out.println("Database connection failed.");
+            return;
+        }
+
+        try {
+            PreparedStatement findStmt = conn.prepareStatement(findStudentSql);
+            findStmt.setString(1, matricule);
+            java.sql.ResultSet rs = findStmt.executeQuery();
+
+            if (!rs.next()) {
+                System.out.println("No student found with this matricule.");
+                rs.close();
+                findStmt.close();
+                conn.close();
+                return;
+            }
+
+            int studentId = rs.getInt("id");
+            rs.close();
+            findStmt.close();
+
+            PreparedStatement insertStmt = conn.prepareStatement(insertGradeSql);
+            insertStmt.setInt(1, studentId);
+            insertStmt.setString(2, module);
+            insertStmt.setDouble(3, grade);
+
+            insertStmt.executeUpdate();
+            System.out.println("Grade added successfully!");
+
+            insertStmt.close();
+            conn.close();
+
+        } catch (SQLException e) {
+            System.out.println("Error adding grade: " + e.getMessage());
+        }
+    }
+    public static void listGrades(String matricule) {
+
+        String sql =
+                "SELECT students.matricule, students.name, grades.module, grades.grade " +
+                "FROM students " +
+                "JOIN grades ON students.id = grades.student_id " +
+                "WHERE students.matricule = ?";
+
+        Connection conn = connect();
+
+        if (conn == null) {
+            System.out.println("Database connection failed.");
+            return;
+        }
+
+        try {
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, matricule);
+
+            java.sql.ResultSet rs = pstmt.executeQuery();
+
+            boolean found = false;
+
+            while (rs.next()) {
+                found = true;
+                System.out.println(
+                    rs.getString("matricule") + " | " +
+                    rs.getString("name") + " | " +
+                    rs.getString("module") + " | " +
+                    rs.getDouble("grade")
+                );
+            }
+
+            if (!found) {
+                System.out.println("No grades found for this student.");
+            }
+
+            rs.close();
+            pstmt.close();
+            conn.close();
+
+        } catch (SQLException e) {
+            System.out.println("Error reading grades: " + e.getMessage());
+        }
+        }
+        public static void calculateAverage(String matricule) {
+
+            String sql =
+                    "SELECT AVG(grades.grade) AS average_grade " +
+                    "FROM students " +
+                    "JOIN grades ON students.id = grades.student_id " +
+                    "WHERE students.matricule = ?";
+
+            Connection conn = connect();
+
+            if (conn == null) {
+                System.out.println("Database connection failed.");
+                return;
+            }
+
+            try {
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                pstmt.setString(1, matricule);
+
+                java.sql.ResultSet rs = pstmt.executeQuery();
+
+                double average = rs.getDouble("average_grade");
+
+                if (rs.wasNull()) {
+                    System.out.println("No grades found for this student.");
+                } else {
+                    System.out.println("Average grade: " + average);
+                }
+
+                rs.close();
+                pstmt.close();
+                conn.close();
+
+            } catch (SQLException e) {
+                System.out.println("Error calculating average: " + e.getMessage());
+            }
+    }
 }

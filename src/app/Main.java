@@ -10,7 +10,9 @@ public class Main {
 
         Scanner sc = new Scanner(System.in);
         StudentService studentService = new StudentService();
+
         Database.initializeDatabase();
+
         int choice;
 
         do {
@@ -20,6 +22,9 @@ public class Main {
             System.out.println("2 - List students");
             System.out.println("3 - Update student program");
             System.out.println("4 - Delete student");
+            System.out.println("5 - Add grade");
+            System.out.println("6 - List grades");
+            System.out.println("7 - Calculate average");
             System.out.println("0 - Exit");
             System.out.print("Choose an option: ");
 
@@ -59,6 +64,34 @@ public class Main {
                     String deleteMatricule = sc.nextLine();
 
                     studentService.deleteStudent(deleteMatricule);
+                    break;
+
+                case 5:
+                    System.out.print("Enter matricule: ");
+                    String gradeMatricule = sc.nextLine();
+
+                    System.out.print("Enter module: ");
+                    String module = sc.nextLine();
+
+                    System.out.print("Enter grade: ");
+                    double grade = sc.nextDouble();
+                    sc.nextLine();
+
+                    studentService.addGrade(gradeMatricule, module, grade);
+                    break;
+
+                case 6:
+                    System.out.print("Enter matricule: ");
+                    String listGradesMatricule = sc.nextLine();
+
+                    studentService.listGrades(listGradesMatricule);
+                    break;
+
+                case 7:
+                    System.out.print("Enter matricule: ");
+                    String averageMatricule = sc.nextLine();
+
+                    studentService.calculateAverage(averageMatricule);
                     break;
 
                 case 0:
