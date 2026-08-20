@@ -13,13 +13,8 @@ public class Database {
 
     private static final String URL = "jdbc:sqlite:studentmanager.db";
 
-    public static Connection connect() {
-        try {
-            return DriverManager.getConnection(URL);
-        } catch (SQLException e) {
-            System.err.println("Connection error: " + e.getMessage()); // System.err statt out
-            return null;
-        }
+    public static Connection connect() throws SQLException {
+        return DriverManager.getConnection(URL);
     }
 
     public static void initializeDatabase() {
