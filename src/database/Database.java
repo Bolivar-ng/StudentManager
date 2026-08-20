@@ -213,11 +213,15 @@ public class Database {
             pstmt.setString(1, matricule);
 
             try (ResultSet rs = pstmt.executeQuery()) {
-                double average = rs.getDouble("average_grade");
-                if (rs.wasNull()) {
-                    System.out.println("No grades found for this student.");
+                if (rs.next()) {
+                    double average = rs.getDouble("average_grade");
+                    if (rs.wasNull()) {
+                        System.out.println("No grades found for this student.");
+                    } else {
+                        System.out.printf("Average grade: %.2f%n", average);
+                    }
                 } else {
-                    System.out.printf("Average grade: %.2f%n", average); // formatierte Ausgabe
+                    System.out.println("No grades found for this student.");
                 }
             }
 
