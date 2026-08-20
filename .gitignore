@@ -1,0 +1,24 @@
+﻿# Notes de travail perso
+KRITIK_UND_LOESUNG.md
+
+# Build-Artefakte
+bin/
+target/
+*.class
+
+# SQLite-Datenbank (lokale Testdaten)
+*.db
+*.sqbpro
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# IntelliJ
+.idea/
+*.iml
+
+# OS
+Thumbs.db
+.DS_Store
