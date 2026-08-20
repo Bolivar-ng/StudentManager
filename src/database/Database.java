@@ -14,7 +14,11 @@ public class Database {
     private static final String URL = "jdbc:sqlite:studentmanager.db";
 
     public static Connection connect() throws SQLException {
-        return DriverManager.getConnection(URL);
+        Connection conn = DriverManager.getConnection(URL);
+        try (Statement pragma = conn.createStatement()) {
+            pragma.execute("PRAGMA foreign_keys = ON");
+        }
+        return conn;
     }
 
     public static void initializeDatabase() {
@@ -32,7 +36,7 @@ public class Database {
                 "student_id INTEGER NOT NULL, " +
                 "module TEXT NOT NULL, " +
                 "grade REAL NOT NULL, " +
-                "FOREIGN KEY(student_id) REFERENCES students(id)" +
+                "FOREIGN KEY(student_id) REFERENCES students(id) ON DELETE CASCADE" +
                 ");";
 
         // try-with-resources: conn und stmt werden automatisch geschlossen
