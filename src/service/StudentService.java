@@ -2,94 +2,70 @@ package service;
 
 import database.Database;
 import model.Student;
+import model.Grade;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalDouble;
 
 public class StudentService {
 
-    public void addStudent(String matricule, String name, String program) {
-
-        if (matricule == null || matricule.trim().isEmpty()) {
-            System.out.println("Matricule cannot be empty.");
-            return;
+    public boolean addStudent(String matricule, String name, String program) throws SQLException {
+        requireNonBlank(matricule, "Matricule");
+        requireNonBlank(name, "Name");
+        requireNonBlank(program, "Program");
+        try {
+            return Database.addStudent(matricule.trim(), name.trim(), program.trim());
+        } catch (SQLException e) {
+            if (e.getMessage() != null && e.getMessage().contains("UNIQUE")) {
+                throw new IllegalArgumentException("Matricule already exists: " + matricule);
+            }
+            throw e;
         }
-
-        if (name == null || name.trim().isEmpty()) {
-            System.out.println("Name cannot be empty.");
-            return;
-        }
-
-        if (program == null || program.trim().isEmpty()) {
-            System.out.println("Program cannot be empty.");
-            return;
-        }
-
-        Database.addStudent(matricule.trim(), name.trim(), program.trim());
     }
 
-    public void listStudents() {
-        Database.listStudents();
+    public List<Student> listStudents() throws SQLException {
+        return Database.findAllStudents();
     }
 
-    public void updateStudentProgram(String matricule, String newProgram) {
-
-        if (matricule == null || matricule.trim().isEmpty()) {
-            System.out.println("Matricule cannot be empty.");
-            return;
-        }
-
-        if (newProgram == null || newProgram.trim().isEmpty()) {
-            System.out.println("New program cannot be empty.");
-            return;
-        }
-
-        Database.updateStudentProgram(matricule.trim(), newProgram.trim());
+    public Optional<Student> findStudentByMatricule(String matricule) throws SQLException {
+        requireNonBlank(matricule, "Matricule");
+        return Database.findStudentByMatricule(matricule.trim());
     }
 
-    public void deleteStudent(String matricule) {
-
-        if (matricule == null || matricule.trim().isEmpty()) {
-            System.out.println("Matricule cannot be empty.");
-            return;
-        }
-
-        Database.deleteStudent(matricule.trim());
+    public boolean updateStudentProgram(String matricule, String newProgram) throws SQLException {
+        requireNonBlank(matricule, "Matricule");
+        requireNonBlank(newProgram, "New program");
+        return Database.updateStudentProgram(matricule.trim(), newProgram.trim());
     }
-    public void addGrade(String matricule, String module, double grade) {
 
-        if (matricule == null || matricule.trim().isEmpty()) {
-            System.out.println("Matricule cannot be empty.");
-            return;
-        }
+    public boolean deleteStudent(String matricule) throws SQLException {
+        requireNonBlank(matricule, "Matricule");
+        return Database.deleteStudent(matricule.trim());
+    }
 
-        if (module == null || module.trim().isEmpty()) {
-            System.out.println("Module cannot be empty.");
-            return;
-        }
-
+    public boolean addGrade(String matricule, String module, double grade) throws SQLException {
+        requireNonBlank(matricule, "Matricule");
+        requireNonBlank(module, "Module");
         if (grade < 0 || grade > 20) {
-            System.out.println("Grade must be between 0 and 20.");
-            return;
+            throw new IllegalArgumentException("Grade must be between 0 and 20.");
         }
-
-        Database.addGrade(matricule.trim(), module.trim(), grade);
+        return Database.addGrade(matricule.trim(), module.trim(), grade);
     }
 
-    public void listGrades(String matricule) {
-
-        if (matricule == null || matricule.trim().isEmpty()) {
-            System.out.println("Matricule cannot be empty.");
-            return;
-        }
-
-        Database.listGrades(matricule.trim());
+    public List<Grade> listGrades(String matricule) throws SQLException {
+        requireNonBlank(matricule, "Matricule");
+        return Database.findGradesByMatricule(matricule.trim());
     }
 
-    public void calculateAverage(String matricule) {
+    public OptionalDouble calculateAverage(String matricule) throws SQLException {
+        requireNonBlank(matricule, "Matricule");
+        return Database.calculateAverage(matricule.trim());
+    }
 
-        if (matricule == null || matricule.trim().isEmpty()) {
-            System.out.println("Matricule cannot be empty.");
-            return;
+    private void requireNonBlank(String value, String fieldName) {
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalArgumentException(fieldName + " cannot be empty.");
         }
-
-        Database.calculateAverage(matricule.trim());
     }
 }
