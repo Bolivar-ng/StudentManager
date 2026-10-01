@@ -2,12 +2,18 @@ package model;
 
 public class Grade {
 
-    private int id;
-    private int studentId;
-    private String module;
-    private double grade;
+    private final int id;
+    private final int studentId;
+    private final String module;
+    private final double grade;
 
     public Grade(int id, int studentId, String module, double grade) {
+        if (module == null || module.trim().isEmpty()) {
+            throw new IllegalArgumentException("Module cannot be empty.");
+        }
+        if (grade < 0 || grade > 20) {
+            throw new IllegalArgumentException("Grade must be between 0 and 20.");
+        }
         this.id = id;
         this.studentId = studentId;
         this.module = module;
@@ -21,6 +27,6 @@ public class Grade {
 
     @Override
     public String toString() {
-        return "Module: " + module + " | Grade: " + grade;
+        return String.format("Module: %s | Grade: %.2f", module, grade);
     }
 }
