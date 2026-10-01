@@ -1,20 +1,29 @@
 package app;
 
 import java.util.Scanner;
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.sql.SQLException;
 import service.StudentService;
 import database.Database;
+import model.Student;
+import model.Grade;
 
 public class Main {
 
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
         StudentService studentService = new StudentService();
 
-        Database.initializeDatabase();
+        try {
+            Database.initializeDatabase();
+        } catch (SQLException e) {
+            System.err.println("Fatal error: could not initialize database — " + e.getMessage());
+            return;
+        }
 
         int choice;
-
         do {
             System.out.println();
             System.out.println("===== Student Manager =====");
@@ -27,85 +36,100 @@ public class Main {
             System.out.println("7 - Calculate average");
             System.out.println("0 - Exit");
 
-            // readInt statt sc.nextInt() — kein Crash mehr
             choice = readInt(sc, "Choose an option: ");
 
-            switch (choice) {
-                case 1:
-                    System.out.print("Enter matricule: ");
-                    String matricule = sc.nextLine().trim();
+            try {
+                switch (choice) {
+                    case 1 -> {
+                        System.out.print("Enter matricule: ");
+                        String matricule = sc.nextLine().trim();
+                        System.out.print("Enter name: ");
+                        String name = sc.nextLine().trim();
+                        System.out.print("Enter program: ");
+                        String program = sc.nextLine().trim();
 
-                    System.out.print("Enter name: ");
-                    String name = sc.nextLine().trim();
+                        boolean added = studentService.addStudent(matricule, name, program);
+                        System.out.println(added ? "Student added successfully!" : "Could not add student.");
+                    }
 
-                    System.out.print("Enter program: ");
-                    String program = sc.nextLine().trim();
+                    case 2 -> {
+                        List<Student> students = studentService.listStudents();
+                        if (students.isEmpty()) {
+                            System.out.println("No students found.");
+                        } else {
+                            students.forEach(System.out::println);
+                        }
+                    }
 
-                    studentService.addStudent(matricule, name, program);
-                    break;
+                    case 3 -> {
+                        System.out.print("Enter matricule of the student to update: ");
+                        String matricule = sc.nextLine().trim();
+                        System.out.print("Enter new program: ");
+                        String newProgram = sc.nextLine().trim();
 
-                case 2:
-                    studentService.listStudents();
-                    break;
+                        boolean updated = studentService.updateStudentProgram(matricule, newProgram);
+                        System.out.println(updated ? "Student updated successfully!" : "No student found with this matricule.");
+                    }
 
-                case 3:
-                    System.out.print("Enter matricule of the student to update: ");
-                    String updateMatricule = sc.nextLine().trim();
+                    case 4 -> {
+                        System.out.print("Enter matricule of the student to delete: ");
+                        String matricule = sc.nextLine().trim();
 
-                    System.out.print("Enter new program: ");
-                    String newProgram = sc.nextLine().trim();
+                        boolean deleted = studentService.deleteStudent(matricule);
+                        System.out.println(deleted ? "Student deleted successfully!" : "No student found with this matricule.");
+                    }
 
-                    studentService.updateStudentProgram(updateMatricule, newProgram);
-                    break;
+                    case 5 -> {
+                        System.out.print("Enter matricule: ");
+                        String matricule = sc.nextLine().trim();
+                        System.out.print("Enter module: ");
+                        String module = sc.nextLine().trim();
+                        double grade = readDouble(sc, "Enter grade (0–20): ");
 
-                case 4:
-                    System.out.print("Enter matricule of the student to delete: ");
-                    String deleteMatricule = sc.nextLine().trim();
+                        boolean added = studentService.addGrade(matricule, module, grade);
+                        System.out.println(added ? "Grade added successfully!" : "No student found with this matricule.");
+                    }
 
-                    studentService.deleteStudent(deleteMatricule);
-                    break;
+                    case 6 -> {
+                        System.out.print("Enter matricule: ");
+                        String matricule = sc.nextLine().trim();
 
-                case 5:
-                    System.out.print("Enter matricule: ");
-                    String gradeMatricule = sc.nextLine().trim();
+                        List<Grade> grades = studentService.listGrades(matricule);
+                        if (grades.isEmpty()) {
+                            System.out.println("No grades found for this student.");
+                        } else {
+                            Optional<Student> student = studentService.findStudentByMatricule(matricule);
+                            String studentName = student.map(Student::getName).orElse(matricule);
+                            grades.forEach(g -> System.out.println(studentName + " | " + g));
+                        }
+                    }
 
-                    System.out.print("Enter module: ");
-                    String module = sc.nextLine().trim();
+                    case 7 -> {
+                        System.out.print("Enter matricule: ");
+                        String matricule = sc.nextLine().trim();
 
-                    // readDouble statt sc.nextDouble() — kein Crash mehr
-                    double grade = readDouble(sc, "Enter grade (0–20): ");
+                        OptionalDouble avg = studentService.calculateAverage(matricule);
+                        if (avg.isPresent()) {
+                            System.out.printf("Average grade: %.2f%n", avg.getAsDouble());
+                        } else {
+                            System.out.println("No grades found for this student.");
+                        }
+                    }
 
-                    studentService.addGrade(gradeMatricule, module, grade);
-                    break;
+                    case 0 -> System.out.println("Exiting program...");
 
-                case 6:
-                    System.out.print("Enter matricule: ");
-                    String listGradesMatricule = sc.nextLine().trim();
-
-                    studentService.listGrades(listGradesMatricule);
-                    break;
-
-                case 7:
-                    System.out.print("Enter matricule: ");
-                    String averageMatricule = sc.nextLine().trim();
-
-                    studentService.calculateAverage(averageMatricule);
-                    break;
-
-                case 0:
-                    System.out.println("Exiting program...");
-                    break;
-
-                default:
-                    System.out.println("Invalid choice. Please try again.");
+                    default -> System.out.println("Invalid choice. Please try again.");
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println(e.getMessage());
+            } catch (SQLException e) {
+                System.err.println("Database error: " + e.getMessage());
             }
 
         } while (choice != 0);
 
         sc.close();
     }
-
-    // --- Helper methods ---
 
     private static int readInt(Scanner sc, String prompt) {
         while (true) {
