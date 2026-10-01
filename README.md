@@ -11,9 +11,10 @@ Built as a portfolio project during my Applied Computer Science studies at HTW B
 - Add, list, update and delete students
 - Add and list grades per student
 - Calculate average grade per student
-- Input validation (empty fields, grade range 0–20)
+- Input validation (empty fields, grade range 0–20, duplicate matricule detection)
 - Crash-safe input handling (invalid types are caught and re-prompted)
 - Automatic database initialization on startup
+- Cascading delete: removing a student also removes their grades
 
 ---
 
@@ -28,26 +29,43 @@ Built as a portfolio project during my Applied Computer Science studies at HTW B
 
 ---
 
-## Project Structure  
-src/
-├── app/
-│   └── Main.java          # Entry point, console menu, input handling
-├── database/
-│   └── Database.java      # All SQL operations (CRUD)
-├── model/
-│   ├── Student.java       # Student data model
-│   └── Grade.java         # Grade data model
-└── service/
-└── StudentService.java # Business logic and input validation
+## Architecture
+
+The project follows a strict layered architecture — each layer has one responsibility
+and never does another layer's job:
+
+| Layer | Responsibility | Never does |
+|-------|----------------|------------|
+| `Main` | Console I/O: prompts, menu, displaying results | SQL, validation logic |
+| `StudentService` | Validation, business rules, orchestration | SQL, console output |
+| `Database` | SQL queries only, returns plain data | Console output, validation |
+| `model` | Immutable data objects (`Student`, `Grade`) with self-validating constructors | — |
+
+Concretely:
+- `Database` methods return `boolean`, `List<T>`, `Optional<T>` or `OptionalDouble` —
+  never `void` with a `println` inside.
+- `StudentService` throws `IllegalArgumentException` for invalid input and lets
+  `SQLException` propagate for real database errors — it never prints an error itself.
+- `Main` is the only class that calls `System.out` / `System.err`.
+
+This separation makes the service layer independently testable (no console coupling)
+and keeps the data layer swappable (e.g. a future switch to PostgreSQL would only
+touch `Database`).
+
 ---
 
-## Architecture 
-Main → StudentService → Database → SQLite 
-The project follows a layered architecture:
-- **app** — user interface and input handling
-- **service** — validation and business logic
-- **database** — SQL queries and connection management
-- **model** — data objects (Student, Grade)
+## Project Structure
+
+src/
+├── app/
+│   └── Main.java          # Entry point, console menu, all output
+├── database/
+│   └── Database.java      # SQL queries, returns data (no println)
+├── model/
+│   ├── Student.java        # Self-validating, immutable where possible
+│   └── Grade.java
+└── service/
+    └── StudentService.java # Validation + orchestration, no SQL/no output
 
 ---
 
@@ -58,26 +76,30 @@ The project follows a layered architecture:
 - No external dependencies — SQLite driver included via JDBC
 
 ### Run the project
-```bash
+\`\`\`bash
 git clone https://github.com/Bolivar-ng/StudentManager.git
 cd StudentManager
 # Compile and run via your IDE (Eclipse, IntelliJ) or command line
-```
+\`\`\`
 
-The database file `studentmanager.db` is created automatically on first run.
+The database file `studentmanager.db` is created automatically on first run
+(foreign key constraints are enforced, with cascading delete on grades).
 
 ---
 
 ## Planned Features
 
-- Predefined programs and modules (selectable from a list)
+- Maven build (`mvnw` wrapper) + `sqlite-jdbc` as a managed dependency
+- JUnit 5 tests against an in-memory SQLite database
+- `StudentDao` interface for swappable persistence implementations
+- GitHub Actions CI (build + tests on every push)
+- Predefined programs/modules selectable from a list
 - Export grades to CSV
-- JUnit tests for service layer
 
 ---
 
 ## Author
 
-**Bolivar Nouaze Nguegoh**  
-Applied Computer Science Student — HTW Berlin  
+**Bolivar Nouaze Nguegoh**
+Applied Computer Science Student — HTW Berlin
 [GitHub](https://github.com/Bolivar-ng)
