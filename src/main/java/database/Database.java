@@ -15,10 +15,14 @@ import model.Grade;
 
 public class Database {
 
-    private static final String URL = "jdbc:sqlite:studentmanager.db";
+	private static String url = "jdbc:sqlite:studentmanager.db";
 
+	// Visible uniquement pour les tests — change la cible de connexion
+	static void setUrlForTesting(String testUrl) {
+	    url = testUrl;
+	}
     public static Connection connect() throws SQLException {
-        Connection conn = DriverManager.getConnection(URL);
+        Connection conn = DriverManager.getConnection(url);
         try (Statement pragma = conn.createStatement()) {
             pragma.execute("PRAGMA foreign_keys = ON");
         }
