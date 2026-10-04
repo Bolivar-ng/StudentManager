@@ -84,7 +84,7 @@ public class Main {
                         String matricule = sc.nextLine().trim();
                         System.out.print("Enter module: ");
                         String module = sc.nextLine().trim();
-                        double grade = readDouble(sc, "Enter grade (0–20): ");
+                        double grade = readDouble(sc, "Enter grade (1.0–5.0): ");
 
                         boolean added = studentService.addGrade(matricule, module, grade);
                         System.out.println(added ? "Grade added successfully!" : "No student found with this matricule.");

@@ -65,7 +65,7 @@ class DatabaseTest {
     @Test
     void deleteStudent_shouldCascadeDeleteGrades() throws SQLException {
         Database.addStudent("S004", "Jonas Weber", "Elektrotechnik");
-        Database.addGrade("S004", "Mathematik 2", 15.0);
+        Database.addGrade("S004", "Mathematik 2", 2.0);
 
         boolean deleted = Database.deleteStudent("S004");
 

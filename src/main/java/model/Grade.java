@@ -11,8 +11,8 @@ public class Grade {
         if (module == null || module.trim().isEmpty()) {
             throw new IllegalArgumentException("Module cannot be empty.");
         }
-        if (grade < 0 || grade > 20) {
-            throw new IllegalArgumentException("Grade must be between 0 and 20.");
+        if (grade < 1.0 || grade > 5.0) {
+            throw new IllegalArgumentException("Grade must be between 1.0 and 5.0.");
         }
         this.id = id;
         this.studentId = studentId;
