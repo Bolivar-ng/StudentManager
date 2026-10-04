@@ -1,5 +1,5 @@
 # StudentManager
-
+![Build Status](https://github.com/Bolivar-ng/StudentManager/actions/workflows/build.yml/badge.svg)
 A Java console application for managing students and grades using a SQLite database.
 
 Built as a portfolio project during my Applied Computer Science studies at HTW Berlin.
